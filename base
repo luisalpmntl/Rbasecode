@@ -1,0 +1,210 @@
+
+# Load the necessary libraries
+library(tidyverse)     # For data manipulation and visualization
+library(car)           # For statistical tests
+library(lmtest)        # For statistical tests
+library(stargazer)     # For model output formatting
+library(zoo)           # For time-series analysis
+library(ggplot2)       # For visualization
+library(nnet)          # For classification
+library(cluster)       # For clustering
+
+# Import the dataset
+mydata <- read.csv("mydata.csv")
+
+# Explore the dataset
+summary(mydata)
+head(mydata)
+
+# Check for missing values
+sum(is.na(mydata))
+
+# Rename variables for clarity
+colnames(mydata) <- c("dependent_variable", "independent_variable_1", "independent_variable_2", "independent_variable_3", "independent_variable_4")
+
+# Create scatterplots to visualize the data
+ggplot(mydata, aes(x = independent_variable_1, y = dependent_variable)) + 
+  geom_point() + 
+  xlab("Independent Variable 1") +
+  ylab("Dependent Variable") +
+  ggtitle("Scatterplot of Dependent and Independent Variable 1")
+
+ggplot(mydata, aes(x = independent_variable_2, y = dependent_variable)) + 
+  geom_point() + 
+  xlab("Independent Variable 2") +
+  ylab("Dependent Variable") +
+  ggtitle("Scatterplot of Dependent and Independent Variable 2")
+
+ggplot(mydata, aes(x = independent_variable_3, y = dependent_variable)) + 
+  geom_point() + 
+  xlab("Independent Variable 3") +
+  ylab("Dependent Variable") +
+  ggtitle("Scatterplot of Dependent and Independent Variable 3")
+
+ggplot(mydata, aes(x = independent_variable_4, y = dependent_variable)) + 
+  geom_point() + 
+  xlab("Independent Variable 4") +
+  ylab("Dependent Variable") +
+  ggtitle("Scatterplot of Dependent and Independent Variable 4")
+
+# Create a multiple regression model
+model <- lm(dependent_variable ~ independent_variable_1 + independent_variable_2 + independent_variable_3 + independent_variable_4, data = mydata)
+
+# Print the model summary
+summary(model)
+
+# Test for heteroscedasticity
+bptest(model)
+
+# Check for multicollinearity
+vif(model)
+
+# Check for normality of residuals
+shapiro.test(resid(model))
+
+# Plot the residuals to check for normality and homoscedasticity
+ggplot(model, aes(sample = resid)) + 
+  stat_qq() + 
+  geom_abline(intercept = 0, slope = 1) +
+  ggtitle("QQ-Plot of Residuals")
+
+ggplot(model, aes(x = fitted(model), y = resid)) + 
+  geom_point() + 
+  xlab("Fitted Values") + 
+  ylab("Residuals") + 
+  ggtitle("Residual Plot")
+
+# Extract the coefficients
+coefficients <- coef(model)
+coefficients
+
+# Calculate the R-squared value
+r_squared <- summary(model)$r.squared
+r_squared
+
+# Perform hypothesis tests on the coefficients
+linearHypothesis(model, c("independent_variable_1 = 0", "independent_variable_2 = 0"))
+
+# Format and print the model output
+stargazer(model, type = "text", title = "Multiple Regression Model Results")
+
+# Perform nonlinear modeling with neural networks
+nn_model <- nnet(dependent_variable ~ independent_variable_1 + independent_variable_2 + independent_variable
+# Predict the dependent variable using the neural network model
+nn_predictions <- predict(nn_model, mydata)
+
+# Calculate the root mean squared error
+rmse <- sqrt(mean((mydata$dependent_variable - nn_predictions)^2))
+rmse
+
+# Plot the actual and predicted values
+ggplot(mydata, aes(x = independent_variable_1, y = dependent_variable)) + 
+  geom_point() + 
+  geom_line(aes(y = nn_predictions), color = "red") +
+  xlab("Independent Variable 1") +
+  ylab("Dependent Variable") +
+  ggtitle("Actual vs Predicted Values")
+
+# Perform time-series analysis with ARIMA
+# Create a time-series object
+ts_data <- ts(mydata$dependent_variable, start = c(2010, 1), frequency = 12)
+
+# Plot the time-series data
+autoplot(ts_data) +
+  xlab("Year") +
+  ylab("Dependent Variable") +
+  ggtitle("Time-Series Plot")
+
+# Decompose the time-series data into its components
+ts_components <- decompose(ts_data, "multiplicative")
+
+# Plot the decomposed time-series data
+autoplot(ts_components)
+
+# Fit an ARIMA model to the time-series data
+arima_model <- auto.arima(ts_data)
+
+# Print the ARIMA model summary
+summary(arima_model)
+
+# Forecast the dependent variable using the ARIMA model
+arima_forecast <- forecast(arima_model, h = 12)
+
+# Plot the forecasted values
+autoplot(arima_forecast) +
+  xlab("Year") +
+  ylab("Dependent Variable") +
+  ggtitle("ARIMA Forecast")
+
+# Perform classification with k-NN
+# Create a new column in the dataset for the class variable
+mydata$class <- ifelse(mydata$dependent_variable > median(mydata$dependent_variable), "High", "Low")
+
+# Split the dataset into training and testing sets
+train <- mydata[1:80, ]
+test <- mydata[81:100, ]
+
+# Fit a k-NN model to the training data
+knn_model <- knn(train[, -1], test[, -1], train[, 1], k = 5)
+
+# Calculate the classification accuracy
+accuracy <- sum(knn_model == test$dependent_variable) / nrow(test)
+accuracy
+
+# Perform clustering with k-means
+# Scale the data for clustering
+scaled_data <- scale(mydata[, -1])
+
+# Determine the optimal number of clusters using the elbow method
+elbow_data <- NULL
+for (i in 1:10) {
+  kmeans_model <- kmeans(scaled_data, centers = i)
+  elbow_data <- rbind(elbow_data, data.frame(k = i, wss = kmeans_model$tot.withinss))
+}
+
+ggplot(elbow_data, aes(x = k, y = wss)) + 
+  geom_line() + 
+  geom_point() +
+  xlab("Number of Clusters") +
+  ylab("Within-Cluster Sum of Squares") +
+  ggtitle("Elbow Method")
+
+# Fit a k-means model to the data
+kmeans_model <- kmeans(scaled_data, centers = 3)
+
+# Add the cluster labels to the dataset
+mydata$cluster <- as.factor(kmeans_model$cluster)
+
+# Plot the clustered data
+ggplot(mydata, aes(x = independent_variable_1, y = dependent
+# Perform visualization with PCA
+# Scale the data for PCA
+scaled_data <- scale(mydata[, -c(1, 6)])
+
+# Fit a PCA model to the data
+pca_model <- prcomp(scaled_data)
+
+# Plot the proportion of variance explained by each principal component
+pca_variance <- data.frame(PC = 1:4, Variance = pca_model$sdev^2 / sum(pca_model$sdev^2))
+
+ggplot(pca_variance, aes(x = PC, y = Variance)) + 
+  geom_col(fill = "blue", width = 0.5) + 
+  scale_y_continuous(labels = scales::percent) +
+  xlab("Principal Component") +
+  ylab("Proportion of Variance") +
+  ggtitle("Proportion of Variance Explained by PCA")
+
+# Plot the first two principal components
+pca_data <- as.data.frame(pca_model$x[, 1:2])
+pca_data$class <- mydata$class
+
+ggplot(pca_data, aes(x = PC1, y = PC2, color = class)) + 
+  geom_point() + 
+  xlab("Principal Component 1") +
+  ylab("Principal Component 2") +
+  ggtitle("PCA Visualization")
+
+# Save the final dataset with all the variables and predictions
+final_data <- cbind(mydata, nn_predictions, arima_forecast$mean, knn_model, kmeans_model$cluster, pca_model$x[, 1:2])
+write.csv(final_data, "final_data.csv", row.names = FALSE)
+
